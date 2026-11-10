@@ -594,6 +594,34 @@ img, svg { display: block; max-width: 100%; }
   right: 30px; bottom: -120px;
 }
 .mission-head { position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; z-index: 1; }
+.mission-chest-strip {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 8px;
+  padding: 8px 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(251, 247, 239, 0.6);
+  text-align: left;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+.mission-chest-strip .mcs-icon { font-size: 18px; line-height: 1; flex: 0 0 auto; }
+.mission-chest-strip b { font-size: 10px; color: var(--paper); flex: 0 0 auto; }
+.mission-chest-strip em { flex: 1; min-width: 0; font-size: 8.5px; font-style: normal; color: rgba(251, 247, 239, 0.45); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mission-chest-strip i { flex: 0 0 auto; font-size: 8.5px; font-style: normal; color: rgba(251, 247, 239, 0.4); }
+.mission-chest-strip.ready { background: rgba(232, 163, 26, 0.14); border-color: rgba(232, 163, 26, 0.5); }
+.mission-chest-strip.ready .mcs-icon { animation: chestShake 2.2s ease-in-out infinite; }
+.mission-chest-strip.ready b { color: var(--gold); }
+.mission-chest-strip.ready i { color: var(--gold); }
+.mission-chest-strip.opened { background: rgba(23, 143, 128, 0.12); border-color: rgba(23, 143, 128, 0.35); }
+.mission-chest-strip.opened b, .mission-chest-strip.opened i { color: var(--teal); }
+.mission-chest-strip:hover { background: rgba(232, 163, 26, 0.16); }
 .mission-head h3 { margin: 6px 0 3px; font-size: 22px; letter-spacing: -0.02em; }
 .mission-head p { margin: 0; color: rgba(251, 247, 239, 0.62); font-size: 12px; }
 .mission-ring {
@@ -7382,6 +7410,12 @@ function renderHome() {
           </div>
           <div class="mission-ring" style="--p:${ringP}"><div><b>${doneCount}/3</b><small>已完成</small></div></div>
         </div>
+        <button class="mission-chest-strip ${chestReady ? 'ready' : ''} ${chestClaimed ? 'opened' : ''}" id="chestMini" type="button">
+          <span class="mcs-icon">${chestClaimed ? '🎉' : '🎁'}</span>
+          <b>每日奖励箱</b>
+          <em>${chestClaimed ? '今天已领取' : chestReady ? '已解锁，点击开箱' : `完成三件小事解锁 · 还差 ${3 - doneCount} 件`}</em>
+          <i>${chestClaimed ? '已领取' : chestReady ? '开箱 →' : '未解锁'}</i>
+        </button>
         <ul class="mission-list">
           ${tasks.map(t => `<li class="mission-item ${t.done ? 'done' : ''}">
             <span class="mission-check">✓</span>
@@ -7392,14 +7426,6 @@ function renderHome() {
         <div style="position:relative;z-index:1;margin-top:18px">
           <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(251,247,239,.55);margin-bottom:6px"><span>今日经验</span><span><b style="color:var(--gold)">${state.daily.xp}</b> / ${state.daily.goal} XP</span></div>
           <div class="progress" style="background:rgba(255,255,255,.12)"><i style="width:${Math.min(100, state.daily.xp / state.daily.goal * 100)}%;background:var(--gold)"></i></div>
-        </div>
-        <div class="reward-chest ${chestReady ? 'ready' : ''} ${chestClaimed ? 'opened' : ''}">
-          <span class="chest-icon">${chestClaimed ? '🎉' : '🎁'}</span>
-          <div class="chest-copy">
-            <b>${chestClaimed ? '今日奖励已领取' : chestReady ? '每日奖励箱已解锁！' : '每日奖励箱'}</b>
-            <span>${chestClaimed ? `荣誉星 +1 · 当前共 ${state.honorStars || 0} 颗` : chestReady ? '打开可获得 20 XP 和 1 颗荣誉星' : `完成今日三件小事后解锁（还差 ${3 - doneCount} 件）`}</span>
-          </div>
-          ${chestClaimed ? '<span class="chest-tag">已领取</span>' : `<button class="chest-btn" id="openChest" ${chestReady ? '' : 'disabled'}>${chestReady ? '开启奖励箱' : '未解锁'}</button>`}
         </div>
         ${doneCount === 3 ? '<div class="mission-complete">⭐ 今日三件小事全部完成，给自己盖一枚荣誉星章！</div>' : ''}
       </div>
@@ -7480,6 +7506,13 @@ function renderHome() {
   });
   const chestBtn = $('#openChest');
   if (chestBtn) chestBtn.addEventListener('click', openDailyChest);
+  const chestMini = $('#chestMini');
+  if (chestMini) chestMini.addEventListener('click', () => {
+    if (chestClaimed) { toast('今天的奖励箱已经领取过啦，明天再来。', '🎁'); return; }
+    if (chestReady) { openDailyChest(); return; }
+    toast(`还差 ${3 - doneCount} 件小事，完成今日任务就能开箱。`, '🎁');
+    $('.mission-list')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 }
 
 function openDailyChest() {
@@ -9719,7 +9752,8 @@ function init() {
     ['courses', '▤', '课程'],
     ['lab', '⌁', '动画'],
     ['practice', '◎', '闯关'],
-    ['wrong', '✎', '错题']
+    ['wrong', '✎', '错题'],
+    ['achievements', '♛', '成长']
   ].map(([k, i, n]) => `<a href="#${k}" data-nav="${k}"><span class="mn-ico">${i}</span>${n}</a>`).join('');
   document.body.appendChild(mobile);
 
