@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#14201c" />
+  <title>数学探险岛 · 公网扫码入口</title>
+  <style>
+    :root { --paper:#FBF7EF; --ink:#22211D; --muted:#777267; --gold:#F3C96B; --red:#D94B36; --card:#FFFDF8; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 26px 18px;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+      color: var(--paper);
+      background: radial-gradient(720px 420px at 85% 0%, rgba(217,75,54,.22), transparent 60%), #101A17;
+    }
+    .card { width: min(520px, 100%); padding: 26px; border-radius: 26px; background: var(--card); color: var(--ink); box-shadow: 0 30px 70px rgba(0,0,0,.3); }
+    .eyebrow { display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; letter-spacing: .12em; color: var(--red); }
+    .eyebrow::before { content: ""; width: 18px; height: 2px; background: var(--red); }
+    h1 { margin: 12px 0 6px; font-size: 27px; letter-spacing: -.04em; line-height: 1.2; }
+    .lead { margin: 0 0 16px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+    .qr-box { display: grid; place-items: center; padding: 14px; border-radius: 18px; background: #fff; border: 1px solid #E7DDCC; }
+    #qrcode { width: 100%; max-width: 310px; aspect-ratio: 1; display: grid; place-items: center; }
+    #qrcode svg, #qrcode img { width: 100%; height: auto; display: block; }
+    .url { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--paper); border: 1px dashed #D9CCB7; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; word-break: break-all; text-align: center; }
+    .actions { display: flex; gap: 8px; margin-top: 13px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 9px 14px; border-radius: 11px; border: 1px solid transparent; font-size: 12px; font-weight: 700; text-decoration: none; cursor: pointer; }
+    .btn-primary { background: var(--ink); color: var(--paper); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: #D9CCB7; }
+    .steps { margin: 16px 0 0; padding: 13px 14px; border-radius: 12px; background: #FFF7E8; border: 1px dashed #E8CE8A; color: #77540C; font-size: 10.5px; line-height: 1.8; }
+    .steps b { display: block; margin-bottom: 3px; font-size: 10px; letter-spacing: .06em; }
+    .warn { display: none; margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background: #FFF3D5; color: #77540C; font-size: 11px; line-height: 1.7; }
+    .warn.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="eyebrow">PUBLIC EDITION · 公网扫码</div>
+    <h1>扫一扫，进入数学岛</h1>
+    <p class="lead">这是部署到 GitHub Pages 后的公网入口二维码。可以截图保存，打印出来，或直接让家人用手机扫。</p>
+    <div class="warn" id="warn">当前是本地文件预览，二维码需要在部署后的公网网址中生成。</div>
+    <div class="qr-box"><div id="qrcode" aria-label="公网访问二维码"></div></div>
+    <div class="url" id="url">正在生成…</div>
+    <div class="actions">
+      <a class="btn btn-primary" id="openLink" href="index.html">打开网页 →</a>
+      <button class="btn btn-ghost" id="copyBtn" type="button">复制链接</button>
+    </div>
+    <div class="steps">
+      <b>使用提示</b>
+      1. 在 GitHub Pages 部署完成后，打开本页（把网址最后的 qr-public.html 保留）。<br>
+      2. 截图二维码，发给家人或打印出来。<br>
+      3. 扫码后所有设备访问同一个公网网址，但学习进度仍各自保存在本机浏览器。
+    </div>
+  </div>
+  <script src="assets/qrcode.js"></script>
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var url = params.get('url');
+      if (!url) {
+        if (location.protocol === 'http:' || location.protocol === 'https:') {
+          var base = location.origin + location.pathname.replace(/[^/]*$/, '');
+          url = base + 'index.html';
+        }
+      }
+      var warn = document.getElementById('warn');
+      var text = document.getElementById('url');
+      var link = document.getElementById('openLink');
+      if (!url) {
+        warn.classList.add('show');
+        text.textContent = '请部署后再打开本页，或使用 ?url=https://... 指定网址。';
+        link.href = 'index.html';
+        return;
+      }
+      text.textContent = url;
+      link.href = url;
+      try {
+        var qr = qrcode(0, 'M');
+        qr.addData(url);
+        qr.make();
+        document.getElementById('qrcode').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+      } catch (e) {
+        text.textContent = '二维码生成失败，请直接使用上面的链接。';
+      }
+      document.getElementById('copyBtn').addEventListener('click', function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () {
+            document.getElementById('copyBtn').textContent = '已复制';
+            setTimeout(function () { document.getElementById('copyBtn').textContent = '复制链接'; }, 1500);
+          }).catch(function () { window.prompt('复制链接：', url); });
+        } else {
+          window.prompt('复制链接：', url);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

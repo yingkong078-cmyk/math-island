@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#FBF7EF" />
+  <meta name="description" content="数学探险岛：鲁教版（五四制）七年级数学上、下册全 11 章趣味学习网页。知识解析、动态几何实验、闯关练习、错题卡与成长成就，帮助孩子高效自学。" />
+  <title>数学探险岛 · 鲁教版七年级数学</title>
+  <link rel="icon" type="image/jpeg" href="assets/avatar.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="page-atmosphere" aria-hidden="true">
+    <span class="atmo-dot d1"></span>
+    <span class="atmo-dot d2"></span>
+    <span class="atmo-dot d3"></span>
+    <span class="atmo-squiggle s1">∿</span>
+    <span class="atmo-squiggle s2">＋</span>
+    <span class="atmo-squiggle s3">△</span>
+  </div>
+
+  <header class="topbar" id="topbar">
+    <a class="brand" href="#home" aria-label="返回首页">
+      <span class="brand-mark" aria-hidden="true">π</span>
+      <span class="brand-word">
+        <strong>数学探险岛</strong>
+        <small>鲁教版 · 七年级</small>
+      </span>
+    </a>
+
+    <nav class="main-nav" id="mainNav" aria-label="主导航">
+      <a href="#home" data-nav="home"><span class="nav-ico">⌂</span>首页</a>
+      <a href="#courses" data-nav="courses"><span class="nav-ico">▤</span>课程地图</a>
+      <a href="#campaign" data-nav="campaign"><span class="nav-ico">⚑</span>战役地图</a>
+      <a href="#lab" data-nav="lab"><span class="nav-ico">⌁</span>动画实验室</a>
+      <a href="#practice" data-nav="practice"><span class="nav-ico">◎</span>闯关</a>
+      <a href="#wrong" data-nav="wrong"><span class="nav-ico">✎</span>错题本</a>
+      <a href="#achievements" data-nav="achievements"><span class="nav-ico">♛</span>成长</a>
+    </nav>
+
+    <div class="top-actions">
+      <a class="top-avatar" id="topAvatar" href="#achievements" aria-label="小帅哥的成长档案" title="我的成长档案">
+        <img id="topAvatarImg" src="assets/avatar.jpg" alt="小帅哥的头像" />
+        <span class="ta-star" aria-hidden="true">★</span>
+      </a>
+      <button class="icon-btn" id="soundBtn" type="button" aria-label="开启音效" title="音效开关">
+        <span id="soundIcon">♪</span>
+      </button>
+      <a class="pill pill-xp" href="#achievements" title="查看成长值">
+        <span>⚡</span><b id="topXp">0</b><small>XP</small>
+      </a>
+      <a class="pill pill-streak" href="#achievements" title="连续学习天数">
+        <span>🔥</span><b id="topStreak">0</b><small>天</small>
+      </a>
+    </div>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark small">π</span>
+        <div>
+          <strong>数学探险岛</strong>
+          <p>把“我不会”变成“我再想想”。</p>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="#guide">自学指南</a>
+        <a href="#campaign">战役地图</a>
+        <a href="#courses">全部章节</a>
+        <a href="#lab">动画实验室</a>
+        <a href="#wrong">错题本</a>
+      </div>
+      <p class="footer-note">依据鲁教版（五四制）2024 七年级上册、下册目录编写 · 学习数据保存在本机浏览器</p>
+    </div>
+  </footer>
+
+  <div class="toast-wrap" id="toastWrap" aria-live="polite" aria-atomic="true"></div>
+  <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+  <div id="modalRoot"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/animations.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
