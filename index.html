@@ -10649,8 +10649,13 @@ async function connectCloudBase(silent = false) {
     syncRuntime.app = app;
     syncRuntime.db = db;
     syncRuntime.ref = doc;
-    const snap = await doc.get();
-    const remote = Array.isArray(snap.data) ? (snap.data[0] || null) : (snap.data || null);
+    let remote = null;
+    try {
+      const snap = await doc.get();
+      remote = Array.isArray(snap.data) ? (snap.data[0] || null) : (snap.data || null);
+    } catch (readError) {
+      if (!/Document not found|DOCUMENT_NOT_FOUND|not found/i.test(String(readError.message || readError.code || readError))) throw readError;
+    }
     if (!remote) {
       await doc.set({ progress: cloudPayload(state), updatedAt: Date.now(), clientId: syncPrefs.clientId });
     } else if (remote.progress) {
@@ -10676,8 +10681,14 @@ async function connectCloudBase(silent = false) {
 async function pollCloudBase() {
   if (syncRuntime.provider !== 'cloudbase' || syncRuntime.status !== 'online' || !syncRuntime.ref) return;
   try {
-    const snap = await syncRuntime.ref.get();
-    const remote = Array.isArray(snap.data) ? (snap.data[0] || null) : (snap.data || null);
+    let remote = null;
+    try {
+      const snap = await syncRuntime.ref.get();
+      remote = Array.isArray(snap.data) ? (snap.data[0] || null) : (snap.data || null);
+    } catch (readError) {
+      if (/Document not found|DOCUMENT_NOT_FOUND|not found/i.test(String(readError.message || readError.code || readError))) return;
+      throw readError;
+    }
     if (!remote || !remote.progress) return;
     const merged = mergeProgress(state, remote.progress);
     if (JSON.stringify(cloudPayload(merged)) !== JSON.stringify(remote.progress)) {
