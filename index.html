@@ -2940,6 +2940,197 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
+/* ---------- 小岛机器人 · 豆豆 ---------- */
+.robot-dock {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: 24px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  font-family: var(--font);
+}
+.robot-dock > * { pointer-events: auto; }
+.robot-bubble {
+  position: relative;
+  max-width: 286px;
+  padding: 11px 14px;
+  border-radius: 18px 18px 4px 18px;
+  background: #27251F;
+  color: #FFFDF8;
+  font-size: 12px;
+  line-height: 1.7;
+  box-shadow: 0 14px 34px rgba(34, 33, 29, .24);
+  opacity: 0;
+  transform: translateY(8px) scale(.97);
+  transition: opacity .22s ease, transform .22s ease;
+  pointer-events: none;
+}
+.robot-bubble.show { opacity: 1; transform: none; pointer-events: auto; cursor: pointer; }
+.robot-bubble::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  bottom: -7px;
+  width: 14px; height: 14px;
+  background: #27251F;
+  transform: rotate(45deg);
+  border-radius: 3px;
+}
+.robot-bubble b { color: #FFD86B; }
+.robot-orb {
+  position: relative;
+  width: 72px; height: 72px;
+  border: 0;
+  border-radius: 26px;
+  background: linear-gradient(145deg, #FFF3C9 0%, #F6C84B 58%, #E8A31A 100%);
+  box-shadow: 0 10px 0 rgba(178, 122, 20, .24), 0 18px 40px rgba(232, 163, 26, .3);
+  cursor: pointer;
+  animation: robotFloat 3.8s ease-in-out infinite;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.robot-orb:hover { transform: translateY(-3px) rotate(-2deg); box-shadow: 0 13px 0 rgba(178, 122, 20, .2), 0 24px 46px rgba(232, 163, 26, .36); }
+.robot-orb:active { transform: translateY(1px) scale(.97); }
+.robot-orb.open { animation: none; transform: rotate(4deg); }
+.robot-antenna {
+  position: absolute; left: 50%; top: -15px;
+  width: 3px; height: 17px;
+  translate: -50% 0;
+  border-radius: 4px;
+  background: #3A342A;
+}
+.robot-antenna::after {
+  content: '';
+  position: absolute; left: 50%; top: -8px;
+  width: 11px; height: 11px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: #EF654F;
+  box-shadow: 0 0 0 4px rgba(239, 101, 79, .16);
+  animation: robotBlink 2.4s ease-in-out infinite;
+}
+.robot-head {
+  position: absolute; left: 50%; top: 16px;
+  width: 50px; height: 40px;
+  translate: -50% 0;
+  border-radius: 14px;
+  background: #2C2922;
+  box-shadow: inset 0 -4px 0 rgba(255,255,255,.06);
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.robot-head::before, .robot-head::after {
+  content: '';
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #7FE7DC;
+  box-shadow: 0 0 8px #7FE7DC;
+  animation: robotBlink 3.2s ease-in-out infinite;
+}
+.robot-head::after { animation-delay: .18s; }
+.robot-mouth {
+  position: absolute; left: 50%; bottom: 6px;
+  width: 12px; height: 5px;
+  translate: -50% 0;
+  border-bottom: 2px solid #F6C84B;
+  border-radius: 0 0 8px 8px;
+}
+.robot-panel {
+  width: min(342px, calc(100vw - 28px));
+  padding: 15px;
+  border-radius: 22px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  animation: robotPanelIn .2s ease-out both;
+}
+.robot-panel[hidden] { display: none !important; }
+.robot-panel-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+.robot-panel-avatar {
+  width: 36px; height: 36px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: linear-gradient(145deg, #FFF3C9, #F6C84B);
+  font-size: 18px;
+  box-shadow: inset 0 -3px 0 rgba(178, 122, 20, .14);
+}
+.robot-panel-head b { display: block; font-size: 14px; letter-spacing: -.01em; }
+.robot-panel-head span { display: block; font-size: 9px; color: var(--muted); letter-spacing: .06em; margin-top: 2px; }
+.robot-close {
+  margin-left: auto;
+  width: 28px; height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--card-solid);
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.robot-quote {
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: var(--gold-soft);
+  border: 1px solid #F0DCA8;
+  color: #6B4C12;
+  font-size: 12px;
+  line-height: 1.7;
+  min-height: 48px;
+}
+.robot-clock-row { display: flex; align-items: flex-end; gap: 10px; margin: 12px 0 7px; }
+.robot-clock {
+  font-family: var(--mono);
+  font-size: 30px;
+  line-height: .95;
+  letter-spacing: -.08em;
+  color: var(--ink);
+}
+.robot-mode { font-size: 10px; color: var(--muted); line-height: 1.5; padding-bottom: 2px; }
+.robot-progress { height: 7px; border-radius: 99px; background: var(--paper-deep); overflow: hidden; }
+.robot-progress i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #F6C84B, #EF654F); transition: width .35s ease; }
+.robot-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 12px; }
+.robot-actions button {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--card-solid);
+  color: var(--ink-soft);
+  padding: 9px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+.robot-actions button:hover { background: var(--gold-soft); border-color: #EAD29B; transform: translateY(-1px); }
+.robot-actions button.primary { background: var(--ink); border-color: var(--ink); color: #FFFDF8; }
+.robot-actions button.primary:hover { background: #3A352C; }
+.robot-settings { display: flex; align-items: center; gap: 8px; justify-content: space-between; margin-top: 9px; }
+.robot-mute {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--card-solid);
+  padding: 6px 8px;
+  font-size: 10px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.robot-interval { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+.robot-interval select { border: 1px solid var(--line); border-radius: 7px; background: var(--card-solid); padding: 4px 5px; font-size: 10px; color: var(--ink-soft); }
+.robot-note { margin: 9px 0 0; font-size: 9px; line-height: 1.6; color: var(--muted); }
+@keyframes robotFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@keyframes robotBlink { 0%, 92%, 100% { opacity: 1; } 95% { opacity: .18; } }
+@keyframes robotPanelIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (max-width: 760px) {
+  .robot-dock { right: 12px; bottom: 86px; gap: 8px; }
+  .robot-orb { width: 62px; height: 62px; border-radius: 22px; }
+  .robot-head { top: 13px; width: 44px; height: 35px; border-radius: 12px; }
+  .robot-panel { width: min(326px, calc(100vw - 24px)); padding: 13px; }
+  .robot-bubble { max-width: 260px; font-size: 11.5px; }
+}
+@media (max-width: 360px) {
+  .robot-dock { right: 10px; bottom: 82px; }
+  .robot-actions { grid-template-columns: 1fr; }
+}
+
 </style>
 </head>
 <body>
@@ -9573,6 +9764,7 @@ function voiceEncourage(kind, extra = {}) {
   };
   const list = lines[kind] || [];
   if (!list.length) return false;
+  if (typeof robotCheer === 'function') robotCheer(kind);
   return speak(list[Math.floor(Math.random() * list.length)]);
 }
 
@@ -13435,6 +13627,316 @@ function router() {
   setTimeout(checkBadges, 700);
 }
 
+/* ============================================================
+   小岛机器人 · 豆豆
+   会说话、会打气、会提醒休息的桌面小伙伴
+   ============================================================ */
+const ROBOT_KEY = 'mathIsland_robot_v1';
+const ROBOT_QUOTES = [
+  '今天不用一下子变厉害，只要比昨天多懂一道题。',
+  '错题不是失败，是大脑在长肌肉。',
+  '先开始五分钟，剩下的交给认真。',
+  '你不需要一直很厉害，你只需要一直在路上。',
+  '把不会的题圈出来，它就是你今天的经验包。',
+  '慢一点没关系，想明白比做得快更重要。',
+  '每做完一道题，你都比刚才更会思考一点。',
+  '数学不是天赋比赛，是勇气和好奇心的游戏。',
+  '累了就休息，休息也是学习的一部分。',
+  '今天多问一个为什么，明天就少一个卡点。',
+  '你不是在刷题，你是在给大脑修路。',
+  '别怕写错，草稿纸上的每一步都算数。'
+];
+
+function robotDateKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function loadRobotData() {
+  const today = robotDateKey();
+  let raw = {};
+  try { raw = JSON.parse(localStorage.getItem(ROBOT_KEY) || '{}'); } catch (e) { raw = {}; }
+  const interval = [15, 25, 40].includes(Number(raw.interval)) ? Number(raw.interval) : 25;
+  if (raw.day !== today) {
+    return { day: today, totalSeconds: 0, focusSeconds: 0, breaks: 0, interval, lastInteraction: Date.now(), idle: false, breakUntil: 0, dailyWarned: false, line: '' };
+  }
+  return {
+    day: today,
+    totalSeconds: Math.max(0, Number(raw.totalSeconds) || 0),
+    focusSeconds: 0,
+    breaks: Math.max(0, Number(raw.breaks) || 0),
+    interval,
+    lastInteraction: Date.now(),
+    idle: false,
+    breakUntil: 0,
+    dailyWarned: !!raw.dailyWarned,
+    line: ''
+  };
+}
+
+let robotData = loadRobotData();
+let robotEls = null;
+let robotTimer = null;
+let robotBubbleTimer = 0;
+let robotLastCheer = 0;
+let robotQuoteIndex = 0;
+
+function saveRobotData() {
+  try {
+    localStorage.setItem(ROBOT_KEY, JSON.stringify({
+      day: robotData.day,
+      totalSeconds: robotData.totalSeconds,
+      interval: robotData.interval,
+      breaks: robotData.breaks,
+      dailyWarned: robotData.dailyWarned
+    }));
+  } catch (e) { /* noop */ }
+}
+
+function robotFormat(sec) {
+  const s = Math.max(0, Math.floor(sec));
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function robotBubble(text) {
+  if (!robotEls || !text) return;
+  robotData.line = text;
+  robotEls.line.textContent = text;
+  if (!robotEls.panel.hidden) return;
+  robotEls.bubble.textContent = text;
+  robotEls.bubble.classList.add('show');
+  clearTimeout(robotBubbleTimer);
+  robotBubbleTimer = setTimeout(() => robotEls && robotEls.bubble.classList.remove('show'), 9000);
+}
+
+function robotUpdate() {
+  if (!robotEls) return;
+  const now = Date.now();
+  const inBreak = robotData.breakUntil > now;
+  let clockText = robotFormat(robotData.focusSeconds);
+  let modeText = `已专注 ${Math.floor(robotData.focusSeconds / 60)} 分钟 · 今天 ${Math.floor(robotData.totalSeconds / 60)} 分钟`;
+  if (inBreak) {
+    clockText = robotFormat(Math.ceil((robotData.breakUntil - now) / 1000));
+    modeText = '休息中 · 看看远处，喝口水';
+  } else if (robotData.idle) {
+    clockText = '休息中';
+    modeText = '豆豆在等你回来';
+  }
+  robotEls.clock.textContent = clockText;
+  robotEls.mode.textContent = modeText;
+  const pct = inBreak ? 100 : Math.min(100, (robotData.focusSeconds / (robotData.interval * 60)) * 100);
+  robotEls.progress.style.width = `${pct}%`;
+  robotEls.mute.textContent = state.settings.voice ? '🔊 声音开' : '🔇 声音关';
+  if (robotEls.interval.value !== String(robotData.interval)) robotEls.interval.value = String(robotData.interval);
+  if (!robotData.line) robotEls.line.textContent = ROBOT_QUOTES[robotQuoteIndex % ROBOT_QUOTES.length];
+}
+
+function robotTogglePanel(force) {
+  if (!robotEls) return;
+  const open = typeof force === 'boolean' ? force : robotEls.panel.hidden;
+  robotEls.panel.hidden = !open;
+  robotEls.orb.classList.toggle('open', open);
+  robotEls.orb.setAttribute('aria-expanded', String(open));
+  if (open) {
+    robotEls.bubble.classList.remove('show');
+    robotData.line = robotData.line || ROBOT_QUOTES[robotQuoteIndex % ROBOT_QUOTES.length];
+    robotEls.line.textContent = robotData.line;
+    robotUpdate();
+  }
+}
+
+function robotSpeak() {
+  if (!robotEls) return;
+  if (!state.settings.voice) {
+    state.settings.voice = true;
+    saveState();
+    robotUpdate();
+  }
+  robotQuoteIndex = (robotQuoteIndex + 1) % ROBOT_QUOTES.length;
+  const text = ROBOT_QUOTES[robotQuoteIndex];
+  robotBubble(text);
+  const ok = speak(text, true);
+  if (!ok) toast('这台设备的浏览器不支持语音朗读，豆豆把话写在气泡里啦。', '🤖', 3600);
+}
+
+function robotRest(message, demo = false) {
+  if (!robotEls) return;
+  const text = message || `已经认真学习 ${robotData.interval} 分钟啦。站起来伸个懒腰，看看远处，喝口水，眼睛也要休息一下。`;
+  if (!demo) {
+    robotData.focusSeconds = 0;
+    robotData.breaks += 1;
+    robotData.breakUntil = Date.now() + 5 * 60 * 1000;
+    saveRobotData();
+  }
+  robotBubble(text);
+  speak(text);
+  playSound('alert');
+  toast(demo ? '豆豆提醒预览：学一会儿就要休息哦。' : '豆豆提醒：休息 5 分钟，回来再战。', '🤖', demo ? 3600 : 6000);
+  robotUpdate();
+}
+
+function robotStartBreak() {
+  robotData.breakUntil = Date.now() + 5 * 60 * 1000;
+  robotData.focusSeconds = 0;
+  saveRobotData();
+  robotBubble('好，休息 5 分钟。站起来动一动，眼睛看看窗外。');
+  speak('好，休息五分钟。站起来动一动，眼睛看看窗外。');
+  robotUpdate();
+}
+
+function robotStartFocus() {
+  robotData.breakUntil = 0;
+  robotData.focusSeconds = 0;
+  robotData.idle = false;
+  robotData.lastInteraction = Date.now();
+  saveRobotData();
+  robotBubble('专注模式开始。先做五分钟，剩下的交给认真。');
+  speak('专注模式开始。先做五分钟，剩下的交给认真。');
+  robotUpdate();
+}
+
+function robotTick() {
+  if (!robotEls || document.hidden) return;
+  const now = Date.now();
+  if (now - robotData.lastInteraction > 3 * 60 * 1000) {
+    if (!robotData.idle) { robotData.idle = true; robotUpdate(); }
+    return;
+  }
+  if (robotData.idle) robotData.idle = false;
+  if (robotData.breakUntil && now < robotData.breakUntil) { robotUpdate(); return; }
+  if (robotData.breakUntil && now >= robotData.breakUntil) {
+    robotData.breakUntil = 0;
+    robotData.lastInteraction = now;
+    robotBubble('休息好啦，回来继续。豆豆陪你慢慢来。');
+    speak('休息好啦，回来继续。豆豆陪你慢慢来。');
+  }
+  robotData.totalSeconds += 1;
+  robotData.focusSeconds += 1;
+  if (robotData.totalSeconds === 120 * 60 && !robotData.dailyWarned) {
+    robotData.dailyWarned = true;
+    saveRobotData();
+    robotBubble('今天已经学习两个小时啦。豆豆建议收个尾，去户外走一走，明天再来。');
+    speak('今天已经学习两个小时啦。建议收个尾，去户外走一走，明天再来。');
+    toast('豆豆提醒：今天学习时间已经很长，收个尾休息吧。', '🌙', 6500);
+  }
+  if (robotData.focusSeconds >= robotData.interval * 60) robotRest();
+  robotUpdate();
+  if (robotData.totalSeconds % 10 === 0) saveRobotData();
+}
+
+function robotWake() {
+  if (!robotEls) return;
+  robotData.lastInteraction = Date.now();
+  if (robotData.idle) { robotData.idle = false; robotUpdate(); }
+}
+
+function robotCheer(kind) {
+  if (!robotEls || Date.now() - robotLastCheer < 7000) return;
+  const lines = {
+    correct: '这题被你拿下了，思路真清楚！',
+    wrong: '错题是经验包，拆开看看就赚到了。',
+    level: '升级啦！你正在变成更会思考的自己。',
+    badge: '新徽章到手，继续保持这份认真。',
+    chest: '三件小事完成，今天的你很稳。',
+    result: '一轮结束，看看错题，下一轮更顺。',
+    mission: '战役完成，战功星又亮了一颗。'
+  };
+  if (!lines[kind]) return;
+  robotLastCheer = Date.now();
+  robotBubble(lines[kind]);
+}
+
+function initRobot() {
+  if (document.getElementById('robotDock')) return;
+  const dock = document.createElement('div');
+  dock.id = 'robotDock';
+  dock.className = 'robot-dock';
+  dock.innerHTML = `
+    <div class="robot-bubble" id="robotBubble" role="status" aria-live="polite"></div>
+    <div class="robot-panel" id="robotPanel" hidden role="dialog" aria-label="小岛机器人豆豆">
+      <div class="robot-panel-head">
+        <div class="robot-panel-avatar" aria-hidden="true">🤖</div>
+        <div><b>豆豆 · 小岛机器人</b><span>会打气，也会提醒你休息</span></div>
+        <button class="robot-close" type="button" data-robot="close" aria-label="关闭">×</button>
+      </div>
+      <div class="robot-quote" id="robotLine">${ROBOT_QUOTES[0]}</div>
+      <div class="robot-clock-row">
+        <div class="robot-clock" id="robotClock">00:00</div>
+        <div class="robot-mode" id="robotMode">已专注 0 分钟 · 今天 0 分钟</div>
+      </div>
+      <div class="robot-progress" aria-hidden="true"><i id="robotProgress"></i></div>
+      <div class="robot-actions">
+        <button type="button" data-robot="speak">💬 听豆豆说</button>
+        <button type="button" class="primary" data-robot="focus">🎯 开始专注</button>
+        <button type="button" data-robot="break">🌿 休息 5 分钟</button>
+        <button type="button" data-robot="demo">🔔 试一下提醒</button>
+      </div>
+      <div class="robot-settings">
+        <button type="button" class="robot-mute" id="robotMute" data-robot="mute">🔊 声音开</button>
+        <label class="robot-interval">提醒
+          <select id="robotInterval" aria-label="休息提醒间隔">
+            <option value="15">15 分钟</option>
+            <option value="25">25 分钟</option>
+            <option value="40">40 分钟</option>
+          </select>
+        </label>
+      </div>
+      <p class="robot-note">豆豆只在本机计时，不上传你的学习时长。每段专注结束会提醒休息 5 分钟。</p>
+    </div>
+    <button class="robot-orb" id="robotOrb" type="button" aria-label="打开豆豆小助手" aria-expanded="false">
+      <span class="robot-antenna" aria-hidden="true"></span>
+      <span class="robot-head" aria-hidden="true"><span class="robot-mouth"></span></span>
+    </button>`;
+  document.body.appendChild(dock);
+  robotEls = {
+    bubble: document.getElementById('robotBubble'),
+    panel: document.getElementById('robotPanel'),
+    orb: document.getElementById('robotOrb'),
+    line: document.getElementById('robotLine'),
+    clock: document.getElementById('robotClock'),
+    mode: document.getElementById('robotMode'),
+    progress: document.getElementById('robotProgress'),
+    mute: document.getElementById('robotMute'),
+    interval: document.getElementById('robotInterval')
+  };
+  robotEls.orb.addEventListener('click', () => robotTogglePanel());
+  robotEls.bubble.addEventListener('click', () => robotTogglePanel(true));
+  dock.addEventListener('click', e => {
+    const btn = e.target.closest('[data-robot]');
+    if (!btn) return;
+    const action = btn.dataset.robot;
+    if (action === 'close') robotTogglePanel(false);
+    else if (action === 'speak') robotSpeak();
+    else if (action === 'focus') robotStartFocus();
+    else if (action === 'break') robotStartBreak();
+    else if (action === 'demo') robotRest(null, true);
+    else if (action === 'mute') {
+      state.settings.voice = !state.settings.voice;
+      saveState();
+      robotUpdate();
+      toast(state.settings.voice ? '豆豆的声音打开啦。' : '豆豆先安静陪你。', state.settings.voice ? '🔊' : '🔇', 1800);
+    }
+  });
+  robotEls.interval.addEventListener('change', () => {
+    robotData.interval = Number(robotEls.interval.value) || 25;
+    robotData.focusSeconds = 0;
+    saveRobotData();
+    robotUpdate();
+    toast(`豆豆会每 ${robotData.interval} 分钟提醒你休息。`, '🤖', 2600);
+  });
+  document.addEventListener('pointerdown', robotWake, { passive: true });
+  document.addEventListener('keydown', robotWake);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) robotData.lastInteraction = Date.now();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !robotEls.panel.hidden) robotTogglePanel(false);
+  });
+  robotTimer = setInterval(robotTick, 1000);
+  robotUpdate();
+  setTimeout(() => robotBubble(ROBOT_QUOTES[0]), 2600);
+}
+
 function init() {
   // 移动端底部导航
   const mobile = document.createElement('nav');
@@ -13450,6 +13952,7 @@ function init() {
     ['achievements', '♛', '成长']
   ].map(([k, i, n]) => `<a href="#${k}" data-nav="${k}"><span class="mn-ico">${i}</span>${n}</a>`).join('');
   document.body.appendChild(mobile);
+  initRobot();
 
   const soundBtn = document.getElementById('soundBtn');
   soundBtn.addEventListener('click', () => {
