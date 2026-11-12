@@ -3286,8 +3286,10 @@ input[type="range"]::-moz-range-thumb {
 .robot-dock.panel-left .robot-panel { right: auto; left: 0; }
 .robot-dock.panel-below .robot-bubble,
 .robot-dock.panel-below .robot-panel { bottom: auto; top: calc(100% + 12px); }
-.robot-orb { touch-action: none; cursor: grab; }
+.robot-orb { touch-action: none; cursor: grab; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
 .robot-orb:active { cursor: grabbing; }
+.robot-orb-img { pointer-events: none; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
+.robot-panel-avatar img, .helper-avatar img, .helper-mini img { -webkit-user-drag: none; }
 .robot-dock.is-peek .robot-bubble,
 .robot-dock.is-peek .robot-panel { display: none !important; }
 .robot-dock.is-peek .robot-orb { animation: none; transform: translateX(46%); opacity: .92; }
@@ -12006,7 +12008,7 @@ function openHelper(context) {
   root.innerHTML = `<div class="modal-backdrop" data-close>
     <div class="helper-modal" role="dialog" aria-modal="true" aria-label="小π老师学习助手">
       <div class="helper-head">
-        <div class="helper-avatar ${isBot ? 'robot' : ''}">${isBot ? `<img src="${ROBOT_IMG}" alt="">` : 'π'}</div>
+        <div class="helper-avatar ${isBot ? 'robot' : ''}">${isBot ? `<img src="${ROBOT_IMG}" alt="" draggable="false">` : 'π'}</div>
         <div><b>${isBot ? '豆豆 · AI 学习助手' : '小π老师'}</b><span>${q ? `正在看：${q.point}` : ch ? `正在看：${ch.title}` : isBot ? '不会的题，随时问我' : '陪你一起想'}</span></div>
         <button class="helper-close" id="helperClose" aria-label="关闭">×</button>
       </div>
@@ -12041,6 +12043,7 @@ function openHelper(context) {
         const img = document.createElement('img');
         img.src = ROBOT_IMG;
         img.alt = '';
+        img.draggable = false;
         av.appendChild(img);
       } else {
         av.textContent = 'π';
@@ -14639,7 +14642,7 @@ function robotEndDrag(e) {
   if (moved) {
     robotSavePos();
     robotSuppressClick = true;
-    setTimeout(() => { robotSuppressClick = false; }, 60);
+    setTimeout(() => { robotSuppressClick = false; }, 320);
   }
 }
 
@@ -14753,7 +14756,7 @@ function initRobot() {
     <div class="robot-bubble" id="robotBubble" role="status" aria-live="polite"></div>
     <div class="robot-panel" id="robotPanel" hidden role="dialog" aria-label="小岛机器人豆豆">
       <div class="robot-panel-head">
-        <div class="robot-panel-avatar" aria-hidden="true"><img src="${ROBOT_IMG}" alt=""></div>
+        <div class="robot-panel-avatar" aria-hidden="true"><img src="${ROBOT_IMG}" alt="" draggable="false"></div>
         <div><b>豆豆 · AI 学习助手</b><span>会打气 · 会答疑 · 会提醒休息</span></div>
         <button class="robot-peek-btn" type="button" data-robot="peek" title="半隐藏豆豆" aria-label="半隐藏豆豆">⇥</button>
         <button class="robot-close" type="button" data-robot="close" aria-label="关闭">×</button>
@@ -14784,7 +14787,7 @@ function initRobot() {
       <p class="robot-note">拖动豆豆可以换位置；点 ⇥ 半隐藏，点一下再出来。豆豆只在本机计时，不上传学习时长。</p>
     </div>
     <button class="robot-orb" id="robotOrb" type="button" aria-label="打开豆豆小助手" aria-expanded="false">
-      <img class="robot-orb-img" src="${ROBOT_IMG}" alt="">
+      <img class="robot-orb-img" src="${ROBOT_IMG}" alt="" draggable="false">
     </button>`;
   document.body.appendChild(dock);
   robotEls = {
@@ -14807,6 +14810,8 @@ function initRobot() {
   robotEls.bubble.addEventListener('click', () => robotTogglePanel(true));
   robotApplyPos(robotStoredPos());
   robotEls.orb.addEventListener('pointerdown', robotStartDrag);
+  dock.addEventListener('dragstart', e => e.preventDefault());
+  dock.addEventListener('selectstart', e => e.preventDefault());
   window.addEventListener('pointermove', robotMoveDrag, { passive: false });
   window.addEventListener('pointerup', robotEndDrag);
   window.addEventListener('pointercancel', robotEndDrag);
