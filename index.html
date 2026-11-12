@@ -3268,6 +3268,55 @@ input[type="range"]::-moz-range-thumb {
 .reading-method-card ol { margin: 0; padding-left: 17px; display: grid; gap: 5px; font-size: 10.5px; line-height: 1.65; color: var(--ink-soft); }
 .reading-method-card li b { color: #2A4D9B; }
 
+/* ---------- 机器人拖动 / 半隐藏 ---------- */
+.robot-dock {
+  width: 88px;
+  height: 88px;
+  align-items: flex-end;
+  touch-action: none;
+}
+.robot-bubble,
+.robot-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 12px);
+}
+.robot-bubble::after { display: none; }
+.robot-dock.panel-left .robot-bubble,
+.robot-dock.panel-left .robot-panel { right: auto; left: 0; }
+.robot-dock.panel-below .robot-bubble,
+.robot-dock.panel-below .robot-panel { bottom: auto; top: calc(100% + 12px); }
+.robot-orb { touch-action: none; cursor: grab; }
+.robot-orb:active { cursor: grabbing; }
+.robot-dock.is-peek .robot-bubble,
+.robot-dock.is-peek .robot-panel { display: none !important; }
+.robot-dock.is-peek .robot-orb { animation: none; transform: translateX(46%); opacity: .92; }
+.robot-dock.is-peek.peek-left .robot-orb { transform: translateX(-46%); }
+.robot-dock.is-peek .robot-orb:hover,
+.robot-dock.is-peek .robot-orb:focus-visible { opacity: 1; }
+.robot-peek-btn {
+  width: 28px; height: 28px;
+  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--card-solid);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.robot-peek-btn:hover { background: var(--gold-soft); }
+.robot-close { margin-left: 0; }
+.robot-dock.is-dragging .robot-orb { animation: none; transform: scale(1.04); }
+@media (max-width: 760px) {
+  .robot-dock { width: 62px; height: 62px; }
+  .robot-panel { width: min(326px, calc(100vw - 24px)); }
+  .robot-bubble { max-width: 260px; }
+}
+@media (max-width: 360px) {
+  .robot-dock { width: 62px; height: 62px; }
+}
+
 </style>
 </head>
 <body>
@@ -14423,6 +14472,9 @@ let robotTimer = null;
 let robotBubbleTimer = 0;
 let robotLastCheer = 0;
 let robotQuoteIndex = 0;
+let robotDrag = null;
+let robotSuppressClick = false;
+const ROBOT_POS_KEY = 'mathIsland_robot_pos_v1';
 
 function saveRobotData() {
   try {
@@ -14477,6 +14529,7 @@ function robotUpdate() {
 function robotTogglePanel(force) {
   if (!robotEls) return;
   const open = typeof force === 'boolean' ? force : robotEls.panel.hidden;
+  if (open) robotEls.dock.classList.remove('is-peek');
   robotEls.panel.hidden = !open;
   robotEls.orb.classList.toggle('open', open);
   robotEls.orb.setAttribute('aria-expanded', String(open));
@@ -14484,7 +14537,109 @@ function robotTogglePanel(force) {
     robotEls.bubble.classList.remove('show');
     robotData.line = robotData.line || ROBOT_QUOTES[robotQuoteIndex % ROBOT_QUOTES.length];
     robotEls.line.textContent = robotData.line;
+    robotAdjustPanelSide();
     robotUpdate();
+  }
+}
+
+function robotAdjustPanelSide() {
+  if (!robotEls) return;
+  const rect = robotEls.orb.getBoundingClientRect();
+  const panelW = Math.min(342, window.innerWidth - 28);
+  robotEls.dock.classList.toggle('panel-left', rect.right < panelW + 12);
+  robotEls.dock.classList.toggle('panel-below', rect.top < 360);
+}
+
+function robotPeek(hidden) {
+  if (!robotEls) return;
+  if (hidden) {
+    robotTogglePanel(false);
+    const rect = robotEls.orb.getBoundingClientRect();
+    const left = rect.left + rect.width / 2 < window.innerWidth / 2;
+    robotEls.dock.classList.toggle('peek-left', left);
+    robotEls.dock.classList.add('is-peek');
+  } else {
+    robotEls.dock.classList.remove('is-peek');
+    robotAdjustPanelSide();
+  }
+}
+
+function robotStoredPos() {
+  try {
+    const p = JSON.parse(localStorage.getItem(ROBOT_POS_KEY) || 'null');
+    if (!p || typeof p.x !== 'number' || typeof p.y !== 'number') return null;
+    return p;
+  } catch (e) { return null; }
+}
+
+function robotApplyPos(pos) {
+  if (!robotEls || !pos) return;
+  const width = robotEls.dock.offsetWidth || 88;
+  const height = robotEls.dock.offsetHeight || 88;
+  const minX = 8;
+  const maxX = Math.max(minX, window.innerWidth - width - 8);
+  const minY = 8;
+  const maxY = Math.max(minY, window.innerHeight - height - (window.innerWidth <= 760 ? 78 : 10));
+  const x = Math.max(minX, Math.min(maxX, pos.x));
+  const y = Math.max(minY, Math.min(maxY, pos.y));
+  robotEls.dock.style.left = `${x}px`;
+  robotEls.dock.style.top = `${y}px`;
+  robotEls.dock.style.right = 'auto';
+  robotEls.dock.style.bottom = 'auto';
+}
+
+function robotSavePos() {
+  if (!robotEls) return;
+  const rect = robotEls.dock.getBoundingClientRect();
+  try { localStorage.setItem(ROBOT_POS_KEY, JSON.stringify({ x: Math.round(rect.left), y: Math.round(rect.top) })); } catch (e) { /* noop */ }
+}
+
+function robotStartDrag(e) {
+  if (!robotEls || (e.button !== undefined && e.button !== 0)) return;
+  if (robotEls.dock.classList.contains('is-peek')) robotPeek(false);
+  const rect = robotEls.orb.getBoundingClientRect();
+  robotDrag = {
+    id: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    offsetX: e.clientX - rect.left,
+    offsetY: e.clientY - rect.top,
+    moved: false
+  };
+  robotEls.dock.classList.add('is-dragging');
+  try { robotEls.orb.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+}
+
+function robotMoveDrag(e) {
+  if (!robotDrag || e.pointerId !== robotDrag.id || !robotEls) return;
+  if (!robotDrag.moved && Math.hypot(e.clientX - robotDrag.startX, e.clientY - robotDrag.startY) > 4) {
+    robotDrag.moved = true;
+    robotTogglePanel(false);
+  }
+  if (!robotDrag.moved) return;
+  e.preventDefault();
+  const width = robotEls.dock.offsetWidth || 88;
+  const height = robotEls.dock.offsetHeight || 88;
+  const maxX = Math.max(8, window.innerWidth - width - 8);
+  const maxY = Math.max(8, window.innerHeight - height - (window.innerWidth <= 760 ? 78 : 10));
+  const x = Math.max(8, Math.min(maxX, e.clientX - robotDrag.offsetX));
+  const y = Math.max(8, Math.min(maxY, e.clientY - robotDrag.offsetY));
+  robotEls.dock.style.left = `${x}px`;
+  robotEls.dock.style.top = `${y}px`;
+  robotEls.dock.style.right = 'auto';
+  robotEls.dock.style.bottom = 'auto';
+}
+
+function robotEndDrag(e) {
+  if (!robotDrag || e.pointerId !== robotDrag.id) return;
+  const moved = robotDrag.moved;
+  robotDrag = null;
+  robotEls.dock.classList.remove('is-dragging');
+  try { robotEls.orb.releasePointerCapture(e.pointerId); } catch (err) { /* noop */ }
+  if (moved) {
+    robotSavePos();
+    robotSuppressClick = true;
+    setTimeout(() => { robotSuppressClick = false; }, 60);
   }
 }
 
@@ -14598,8 +14753,9 @@ function initRobot() {
     <div class="robot-bubble" id="robotBubble" role="status" aria-live="polite"></div>
     <div class="robot-panel" id="robotPanel" hidden role="dialog" aria-label="小岛机器人豆豆">
       <div class="robot-panel-head">
-        <div class="robot-panel-avatar" aria-hidden="true"><img src="assets/robot-mascot.png" alt=""></div>
+        <div class="robot-panel-avatar" aria-hidden="true"><img src="${ROBOT_IMG}" alt=""></div>
         <div><b>豆豆 · AI 学习助手</b><span>会打气 · 会答疑 · 会提醒休息</span></div>
+        <button class="robot-peek-btn" type="button" data-robot="peek" title="半隐藏豆豆" aria-label="半隐藏豆豆">⇥</button>
         <button class="robot-close" type="button" data-robot="close" aria-label="关闭">×</button>
       </div>
       <div class="robot-quote" id="robotLine">${ROBOT_QUOTES[0]}</div>
@@ -14625,13 +14781,14 @@ function initRobot() {
           </select>
         </label>
       </div>
-      <p class="robot-note">豆豆只在本机计时，不上传你的学习时长。每段专注结束会提醒休息 5 分钟。</p>
+      <p class="robot-note">拖动豆豆可以换位置；点 ⇥ 半隐藏，点一下再出来。豆豆只在本机计时，不上传学习时长。</p>
     </div>
     <button class="robot-orb" id="robotOrb" type="button" aria-label="打开豆豆小助手" aria-expanded="false">
       <img class="robot-orb-img" src="${ROBOT_IMG}" alt="">
     </button>`;
   document.body.appendChild(dock);
   robotEls = {
+    dock,
     bubble: document.getElementById('robotBubble'),
     panel: document.getElementById('robotPanel'),
     orb: document.getElementById('robotOrb'),
@@ -14642,13 +14799,28 @@ function initRobot() {
     mute: document.getElementById('robotMute'),
     interval: document.getElementById('robotInterval')
   };
-  robotEls.orb.addEventListener('click', () => robotTogglePanel());
+  robotEls.orb.addEventListener('click', () => {
+    if (robotSuppressClick) { robotSuppressClick = false; return; }
+    if (robotEls.dock.classList.contains('is-peek')) { robotPeek(false); return; }
+    robotTogglePanel();
+  });
   robotEls.bubble.addEventListener('click', () => robotTogglePanel(true));
+  robotApplyPos(robotStoredPos());
+  robotEls.orb.addEventListener('pointerdown', robotStartDrag);
+  window.addEventListener('pointermove', robotMoveDrag, { passive: false });
+  window.addEventListener('pointerup', robotEndDrag);
+  window.addEventListener('pointercancel', robotEndDrag);
+  window.addEventListener('resize', () => {
+    const pos = robotStoredPos();
+    if (pos) robotApplyPos(pos);
+    robotAdjustPanelSide();
+  });
   dock.addEventListener('click', e => {
     const btn = e.target.closest('[data-robot]');
     if (!btn) return;
     const action = btn.dataset.robot;
     if (action === 'close') robotTogglePanel(false);
+    else if (action === 'peek') robotPeek(true);
     else if (action === 'speak') robotSpeak();
     else if (action === 'focus') robotStartFocus();
     else if (action === 'break') robotStartBreak();
