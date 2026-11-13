@@ -7537,6 +7537,518 @@ if (typeof QUESTIONS !== 'undefined') QUESTIONS.push(...MOTHER_QUESTIONS);
 </script>
   <script>
 /* ============================================================
+   七上母题扩充：6 章 × 30 道
+   每章 5 个母题根，每个根 6 个变式；每个根前 2 个“中”、
+   中间 2 个“中上”、后 2 个“难”。
+   ============================================================ */
+(function () {
+  const out = [];
+  const count = {};
+  const tierOf = i => i < 2 ? ['中', 2, 1] : i < 4 ? ['中上', 3, 2] : ['难', 3, 3];
+
+  function add(ch, i, point, stem, correct, distractors, explanation, hint, readingTip, fill) {
+    count[ch] = (count[ch] || 0) + 1;
+    const [tier, level, tierRank] = tierOf(i);
+    const id = `mq7a-${ch}-${String(count[ch]).padStart(2, '0')}`;
+    const base = {
+      id, ch, section: '母题', level, mother: true, motherTier: tier, tierRank,
+      point, stem, hint, explanation, readingTip
+    };
+    const makeFill = fill === true || (fill === undefined && i === 2 && /^[-−]?\d+(\.\d+)?°?$/.test(String(correct)));
+    if (makeFill) {
+      out.push({ ...base, type: 'fill', answers: [String(correct)] });
+      return;
+    }
+    let options = [...new Set([String(correct), ...distractors.map(String)])].slice(0, 4);
+    while (options.length < 4) options.push('以上都不对');
+    const shift = (i + 1) % 4;
+    options = options.slice(shift).concat(options.slice(0, shift));
+    out.push({ ...base, type: 'choice', options, answer: options.indexOf(String(correct)) });
+  }
+
+  const tips = {
+    sides: '圈“第三边”与“整数”两个词；先写两边差 < x < 两边和，再数整数。',
+    angle: '先看已知角是内角、外角还是比例；三角形内角和是 180°，外角等于两个不相邻内角之和。',
+    congruence: '先找等角的两条邻边；SAS 的角必须在两边中间，SSA 不能判定全等。',
+    isosceles: '等腰题先问“已知角是顶角还是底角”，两种情况都要考虑，别漏解。',
+    hardgeo: '证明题先写已知、求证，再找判定；每一步写依据，最后回到结论。',
+    symmetry: '先找对称轴，再看对应点到轴的距离相等；坐标对称看符号变化。',
+    perp: '垂直平分线上的点到两端距离相等；设未知数时先写等量关系。',
+    coord: '先画坐标系，标出点的位置；关于 x 轴对称变 y，关于 y 轴对称变 x。',
+    pyth: '先确认直角和斜边；求斜边用加，求直角边用减，最后检查是否要开方。',
+    real: '先看根号下的数非负；平方根有正负两个，算术平方根只取正。',
+    func: '先写函数表达式，再代入；一次函数 y=kx+b 的 k 看倾斜方向，b 看与 y 轴交点。'
+  };
+
+  /* ---------------- 第1章 三角形 ---------------- */
+  for (let i = 0; i < 6; i++) {
+    const [a, b] = [[3, 5], [4, 6], [5, 8], [6, 9], [7, 10], [8, 13]][i];
+    if (i < 4) {
+      const low = b - a, high = a + b;
+      add('c1', i, '三角形三边关系',
+        `三角形的两条边分别是 ${a} 和 ${b}，第三条边 x 的取值范围是（　）。`,
+        `${low}<x<${high}`, [`${low}≤x≤${high}`, `x>${low}`, `x<${high}`],
+        `两边之差小于第三边，两边之和大于第三边，所以 ${low}<x<${high}。`,
+        '先算两边差与两边和。', tips.sides);
+    } else {
+      const low = b - a, high = a + b, n = high - low - 1;
+      add('c1', i, '三角形三边关系的整数解',
+        `三角形的两条边分别是 ${a} 和 ${b}，第三条边 x 是整数，这样的 x 有（　）个。`,
+        String(n), [String(n - 1), String(n + 1), String(high - low)],
+        `由 ${low}<x<${high}，整数 x 从 ${low + 1} 到 ${high - 1}，共 ${n} 个。`,
+        '先求范围，再数列举。', tips.sides);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 4) {
+      const [a, b] = [[50, 60], [40, 75], [35, 65], [28, 52]][i];
+      add('c1', i, '三角形内角和',
+        `三角形的两个内角分别是 ${a}° 和 ${b}°，第三个内角是（　）。`,
+        `${180 - a - b}°`, [`${a + b}°`, `${180 - a}°`, `${180 - b}°`],
+        `第三个角 = 180°−${a}°−${b}° = ${180 - a - b}°。`,
+        '内角和固定为 180°。', tips.angle);
+    } else {
+      const [x, y, z] = [[2, 3, 4], [3, 4, 5]][i - 4];
+      const sum = x + y + z;
+      const largest = 180 * z / sum;
+      add('c1', i, '三角形内角比例',
+        `△ABC 中，∠A∶∠B∶∠C=${x}∶${y}∶${z}，最大的内角是（　）。`,
+        `${largest}°`, [`${180 * x / sum}°`, `${180 * y / sum}°`, `${largest + 10}°`],
+        `每份是 180÷(${x}+${y}+${z})=${180 / sum}°，最大角是 ${z} 份，即 ${largest}°。`,
+        '先求总份数和每份度数。', tips.angle);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    const items = [
+      ['AB=DE，∠B=∠E，补充 BC=EF', 'SAS', 'BC=EF'],
+      ['AB=DE，∠A=∠D，补充 ∠B=∠E', 'ASA', '∠B=∠E'],
+      ['AB=DE，BC=EF，补充 AC=DF', 'SSS', 'AC=DF'],
+      ['AB=DE，∠B=∠E，补充 ∠C=∠F', 'AAS', '∠C=∠F'],
+      ['AB=DE，∠A=∠D，补充 ∠B=∠E', 'ASA', '∠B=∠E'],
+      ['AB=DE，BC=EF，补充 ∠B=∠E', 'SAS', '∠B=∠E']
+    ][i];
+    add('c1', i, '全等三角形的判定',
+      `已知 △ABC 和 △DEF 中，${items[0]}。这种判定方法应该是（　）。`,
+      items[1], ['SSA', 'AAA', '无法判定'],
+      `根据已知的边角位置，符合 ${items[1]} 判定。`,
+      '把条件按边、角位置排一排。', tips.congruence);
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 4) {
+      const apex = [40, 80, 100, 120][i];
+      add('c1', i, '等腰三角形的角',
+        `等腰三角形的一个顶角是 ${apex}°，它的一个底角是（　）。`,
+        `${(180 - apex) / 2}°`, [`${apex}°`, `${180 - apex}°`, `${(180 - apex) / 4}°`],
+        `两个底角相等，底角 = (180°−${apex}°)÷2 = ${(180 - apex) / 2}°。`,
+        '顶角只有一个，底角有两个。', tips.isosceles);
+    } else {
+      const base = [50, 70][i - 4];
+      add('c1', i, '等腰三角形的分类',
+        `等腰三角形的一个角是 ${base}°，另外两个角可能是（　）。`,
+        `${base}°，${180 - 2 * base}°`, [`${base}°，${base}°`, `${180 - base}°，${base}°`, `${180 - 2 * base}°，${180 - 2 * base}°`],
+        `已知角可能是底角，也可能是顶角；按两种情况检验，题目问“可能”，${base}°、${180 - 2 * base}° 是一组。`,
+        '先假设是底角，再假设是顶角。', tips.isosceles);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 3) {
+      const ext = [110, 120, 130][i];
+      const one = [40, 50, 60][i];
+      add('c1', i, '三角形的外角',
+        `三角形的一个外角是 ${ext}°，与它不相邻的一个内角是 ${one}°，另一个不相邻内角是（　）。`,
+        `${ext - one}°`, [`${180 - ext}°`, `${one}°`, `${ext + one}°`],
+        `外角等于两个不相邻内角之和，所以另一个角 = ${ext}°−${one}° = ${ext - one}°。`,
+        '外角与相邻内角互补，但与两个不相邻内角之和相等。', tips.angle);
+    } else {
+      const [a, b, c] = [[60, 50, 70], [80, 40, 60], [45, 65, 70]][i - 3];
+      add('c1', i, '三角形外角与内角',
+        `△ABC 中，∠A=${a}°，∠B=${b}°，∠C=${c}°。∠A 的外角是（　）。`,
+        `${b + c}°`, [`${a}°`, `${a + b}°`, `${a + c}°`],
+        `∠A 的外角等于与它不相邻的 ∠B+∠C = ${b}°+${c}° = ${b + c}°。`,
+        '外角等于两个不相邻内角之和。', tips.hardgeo);
+    }
+  }
+
+  /* ---------------- 第2章 轴对称 ---------------- */
+  for (let i = 0; i < 6; i++) {
+    const [x, y] = [[3, 2], [4, 5], [6, 1], [7, 3], [8, 4], [9, 6]][i];
+    if (i < 4) {
+      add('c2', i, '坐标轴对称',
+        `点 P(${x}, ${y}) 关于 x 轴对称的点的坐标是（　）。`,
+        `(${x}, -${y})`, [`(-${x}, ${y})`, `(-${x}, -${y})`, `(${y}, ${x})`],
+        `关于 x 轴对称，横坐标不变，纵坐标变相反数。`,
+        'x 轴对称：x 不变，y 变号。', tips.coord);
+    } else {
+      add('c2', i, '坐标轴对称',
+        `点 P(${x}, ${y}) 关于 y 轴对称的点的坐标是（　）。`,
+        `(-${x}, ${y})`, [`(${x}, -${y})`, `(-${x}, -${y})`, `(${y}, ${x})`],
+        `关于 y 轴对称，纵坐标不变，横坐标变相反数。`,
+        'y 轴对称：y 不变，x 变号。', tips.coord);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 4) {
+      const [pa, pb, total] = [[3, 3, 4], [4, 4, 6], [5, 5, 8], [6, 6, 10]][i];
+      add('c2', i, '垂直平分线',
+        `点 P 在线段 AB 的垂直平分线上，PA=${pa}，PB=${pb}，AB=${total}，则 PB 与 PA 的关系是（　）。`,
+        'PA=PB', ['PA>PB', 'PA<PB', '无法确定'],
+        '垂直平分线上的点到线段两端距离相等，所以 PA=PB。',
+        '看到垂直平分线，先写“到两端距离相等”。', tips.perp);
+    } else {
+      const [pa, total] = [[5, 8], [7, 10]][i - 4];
+      add('c2', i, '垂直平分线的应用',
+        `点 P 在线段 AB 的垂直平分线上，PA=${pa}，AB=${total}，则 PB 的长是（　）。`,
+        String(pa), [String(total - pa), String(total), String(pa + 2)],
+        '垂直平分线上的点到两端距离相等，PB=PA=' + pa + '。',
+        '不需要求 AB 的一半，直接用 PA=PB。', tips.perp);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 3) {
+      const shape = ['等边三角形', '正方形', '等腰三角形'][i];
+      const n = ['3', '4', '1'][i];
+      add('c2', i, '对称轴的数量',
+        `${shape}的对称轴条数是（　）。`,
+        n, ['1', '2', '无数'], `沿对应方向折叠能重合的折痕就是对称轴，${shape}有 ${n} 条。`,
+        '画一画折痕，不要只凭感觉。', tips.symmetry);
+    } else {
+      const [x, y] = [[2, 5], [3, 6], [4, 7]][i - 3];
+      add('c2', i, '关于原点对称',
+        `点 A(${x}, ${y}) 关于原点对称的点是（　）。`,
+        `(-${x}, -${y})`, [`(${x}, -${y})`, `(-${x}, ${y})`, `(${y}, ${x})`],
+        '关于原点对称，横、纵坐标都变相反数。',
+        '原点对称：x、y 同时变号。', tips.coord);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 4) {
+      const [a, b] = [[2, 3], [3, 4], [4, 5], [5, 6]][i];
+      add('c2', i, '等腰三角形的对称性',
+        `等腰三角形的顶角是 ${a * 10}°，底角是（　）。`,
+        `${(180 - a * 10) / 2}°`, [`${a * 10}°`, `${180 - a * 10}°`, `${(180 - a * 10) / 4}°`],
+        '等腰三角形两底角相等，底角=(180°−顶角)÷2。',
+        '先找顶角和底角。', tips.isosceles);
+    } else {
+      const side = [5, 6][i - 4];
+      add('c2', i, '等边三角形的性质',
+        `等边三角形的边长是 ${side}，它的周长是（　）。`,
+        String(side * 3), [String(side + 3), String(side * 2), String(side * 4)],
+        '等边三角形三边相等，周长=3×边长。',
+        '等边三角形三边一样长。', tips.symmetry);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 3) {
+      const [x, y] = [[1, 2], [2, 4], [3, 5]][i];
+      add('c2', i, '坐标系中的对称点',
+        `点 A(${x}, ${y}) 关于直线 y=x 对称的点是（　）。`,
+        `(${y}, ${x})`, [`(${x}, -${y})`, `(-${x}, ${y})`, `(-${x}, -${y})`],
+        '关于 y=x 对称，横纵坐标互换。',
+        'y=x 对称：x 和 y 交换位置。', tips.coord);
+    } else {
+      const [x, y] = [[2, 3], [4, 5], [6, 7]][i - 3];
+      add('c2', i, '对称与距离',
+        `点 P(${x}, ${y}) 到 x 轴的距离是（　）。`,
+        String(Math.abs(y)), [String(Math.abs(x)), String(x + y), String(Math.abs(x - y))],
+        '点到 x 轴的距离等于纵坐标的绝对值。',
+        '到 x 轴看 y，到 y 轴看 x。', tips.coord);
+    }
+  }
+
+  /* ---------------- 第3章 勾股定理 ---------------- */
+  for (let i = 0; i < 6; i++) {
+    const [a, b] = [[3, 4], [5, 12], [6, 8], [7, 24], [8, 15], [9, 40]][i];
+    const c = Math.sqrt(a * a + b * b);
+    add('c3', i, '勾股定理求斜边',
+      `直角三角形的两条直角边是 ${a} 和 ${b}，斜边是（　）。`,
+      String(c), [String(a + b), String(c + 1), String(Math.abs(b - a))],
+      `${a}²+${b}²=${a * a + b * b}，斜边=√${a * a + b * b}=${c}。`,
+      '斜边平方等于两直角边平方和。', tips.pyth);
+  }
+  for (let i = 0; i < 6; i++) {
+    const [c, a] = [[5, 3], [13, 5], [10, 6], [25, 7], [17, 8], [41, 9]][i];
+    const b = Math.sqrt(c * c - a * a);
+    add('c3', i, '勾股定理求直角边',
+      `直角三角形的斜边是 ${c}，一条直角边是 ${a}，另一条直角边是（　）。`,
+      String(b), [String(c - a), String(Math.sqrt(c * c + a * a)), String(c + a)],
+      `另一条直角边²=${c}²−${a}²=${c * c - a * a}，所以是 ${b}。`,
+      '求直角边用减法，别忘了开方。', tips.pyth);
+  }
+  for (let i = 0; i < 6; i++) {
+    const triples = [[6, 8, 10], [5, 12, 13], [8, 15, 17], [7, 24, 25], [9, 12, 15], [10, 24, 26]][i];
+    const bad = [[5, 6, 8], [4, 5, 6], [6, 7, 9], [3, 4, 6], [5, 7, 9], [8, 9, 12]][i];
+    add('c3', i, '勾股定理的逆定理',
+      `下列三组数中，能组成直角三角形的是（　）。`,
+      triples.join('，'), [bad.join('，'), [triples[0] + 1, triples[1], triples[2]].join('，'), [triples[0], triples[1] + 1, triples[2]].join('，')],
+      `${triples[0]}²+${triples[1]}²=${triples[0] * triples[0] + triples[1] * triples[1]}=${triples[2]}²，符合勾股定理逆定理。`,
+      '找最长边，算另外两边平方和。', tips.pyth);
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 4) {
+      const [h, d] = [[5, 3], [10, 6], [13, 5], [15, 9]][i];
+      const height = Math.sqrt(h * h - d * d);
+      add('c3', i, '勾股定理的实际应用',
+        `一架 ${h} 米长的梯子，梯脚离墙 ${d} 米，梯顶离地（　）米。`,
+        String(height), [String(h - d), String(Math.sqrt(h * h + d * d)), String(d)],
+        `梯顶高²=${h}²−${d}²=${h * h - d * d}，高=${height} 米。`,
+        '梯子、墙、地面组成直角三角形。', tips.pyth);
+    } else {
+      const [w, h] = [[6, 8], [9, 12]][i - 4];
+      const diag = Math.sqrt(w * w + h * h);
+      add('c3', i, '长方形对角线',
+        `长方形的长是 ${h}，宽是 ${w}，对角线长是（　）。`,
+        String(diag), [String(w + h), String(diag + 1), String(h - w)],
+        `对角线²=${w}²+${h}²=${w * w + h * h}，对角线=${diag}。`,
+        '长方形对角线把长方形分成两个直角三角形。', tips.pyth);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 3) {
+      const [a, b] = [[3, 4], [6, 8], [5, 12]][i];
+      const c = Math.sqrt(a * a + b * b);
+      add('c3', i, '勾股数与面积',
+        `直角三角形的两条直角边是 ${a} 和 ${b}，斜边是 ${c}，它的面积是（　）。`,
+        String(a * b / 2), [String(a * b), String(c * 2), String((a + b) / 2)],
+        '直角三角形面积=两条直角边乘积÷2。',
+        '别把斜边当底去乘。', tips.pyth);
+    } else {
+      const c = [10, 20, 26][i - 3];
+      add('c3', i, '斜边上的中线',
+        `直角三角形的斜边是 ${c}，斜边上的中线长是（　）。`,
+        String(c / 2), [String(c), String(c * 2), String(c / 4)],
+        '直角三角形斜边上的中线等于斜边的一半，所以是 ' + (c / 2) + '。',
+        '看到“斜边中线”，先想“等于斜边的一半”。', tips.hardgeo);
+    }
+  }
+
+  /* ---------------- 第4章 实数 ---------------- */
+  for (let i = 0; i < 6; i++) {
+    const n = [16, 25, 49, 64, 81, 121][i];
+    add('c4', i, '平方根与算术平方根',
+      `${n} 的算术平方根是（　）。`,
+      String(Math.sqrt(n)), [`-${Math.sqrt(n)}`, String(n / 2), String(Math.sqrt(n) * 2)],
+      `正数 ${n} 的算术平方根是 √${n}=${Math.sqrt(n)}；平方根有两个，算术平方根只取正。`,
+      '算术平方根只取正数。', tips.real);
+  }
+  for (let i = 0; i < 6; i++) {
+    const n = [27, 64, 125, 216, 343, 512][i];
+    add('c4', i, '立方根',
+      `${n} 的立方根是（　）。`,
+      String(Math.cbrt(n)), [String(Math.cbrt(n) * 2), String(n / 3), String(Math.sqrt(n))],
+      `${Math.cbrt(n)}³=${n}，所以立方根是 ${Math.cbrt(n)}。`,
+      '立方根可以是负数，但正数的立方根是正数。', tips.real);
+  }
+  for (let i = 0; i < 6; i++) {
+    const sets = [
+      ['√2', ['0.5', '√9', '22/7']],
+      ['π', ['0.333…', '√16', '-3']],
+      ['-√5', ['√25', '0', '7/2']],
+      ['√3', ['√9', '1.25', '0']],
+      ['√7', ['1.5', '√4', '-2/3']],
+      ['√10', ['√4', '2.5', '3']]
+    ][i];
+    add('c4', i, '无理数的识别',
+      `下列各数中，是无理数的是（　）。`,
+      sets[0], sets[1],
+      `${sets[0]} 不能写成两个整数之比，是无理数；其余三个都是有理数。`,
+      '无理数是无限不循环小数，不能写成分数。', tips.real);
+  }
+  for (let i = 0; i < 6; i++) {
+    const n = [8, 15, 20, 30, 40, 50][i];
+    add('c4', i, '无理数的估算',
+      `√${n} 在哪两个连续整数之间（　）。`,
+      `${Math.floor(Math.sqrt(n))} 和 ${Math.floor(Math.sqrt(n)) + 1}`,
+      [`${Math.floor(Math.sqrt(n)) - 1} 和 ${Math.floor(Math.sqrt(n))}`, `${Math.floor(Math.sqrt(n)) + 1} 和 ${Math.floor(Math.sqrt(n)) + 2}`, `${n} 和 ${n + 1}`],
+      `${Math.floor(Math.sqrt(n))}²=${Math.floor(Math.sqrt(n)) ** 2}<${n}<${(Math.floor(Math.sqrt(n)) + 1) ** 2}=${Math.floor(Math.sqrt(n)) + 1}²，所以在这两个整数之间。`,
+      '找平方后夹住 n 的两个完全平方数。', tips.real);
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 4) {
+      const n = [9, 16, 25, 36][i];
+      add('c4', i, '平方根的解',
+        `若 x²=${n}，则 x 的值是（　）。`,
+        `±${Math.sqrt(n)}`, [`${Math.sqrt(n)}`, `-${Math.sqrt(n)}`, `±${n}`],
+        `x²=${n}，x 是 ${n} 的平方根，有两个：±${Math.sqrt(n)}。`,
+        '平方根有正负两个，别漏负根。', tips.real);
+    } else {
+      const n = [27, 64][i - 4];
+      add('c4', i, '立方根的解',
+        `若 x³=${n}，则 x 的值是（　）。`,
+        String(Math.cbrt(n)), [`±${Math.cbrt(n)}`, String(n / 3), String(Math.sqrt(n))],
+        `x 是 ${n} 的立方根，x=${Math.cbrt(n)}。`,
+        '立方根只有一个，符号与原数相同。', tips.real);
+    }
+  }
+
+  /* ---------------- 第5章 位置与坐标 ---------------- */
+  for (let i = 0; i < 6; i++) {
+    const pts = [[2, 3], [-2, 3], [-2, -3], [2, -3], [5, 1], [-5, -1]][i];
+    const [x, y] = pts;
+    const q = x > 0 && y > 0 ? '第一象限' : x < 0 && y > 0 ? '第二象限' : x < 0 && y < 0 ? '第三象限' : '第四象限';
+    add('c5', i, '点的象限',
+      `点 P(${x}, ${y}) 在（　）。`,
+      q, ['第一象限', '第二象限', '第三象限', '第四象限'].filter(v => v !== q).slice(0, 3),
+      `横坐标 ${x}，纵坐标 ${y}，符合${q}的符号特征。`,
+      '先看 x、y 的正负。', tips.coord);
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 4) {
+      const [x1, y1, x2, y2] = [[1, 2, 1, 7], [3, 4, 8, 4], [-2, 1, 4, 1], [2, -3, 2, 5]][i];
+      const d = Math.abs(x2 - x1) + Math.abs(y2 - y1);
+      add('c5', i, '坐标中的距离',
+        `点 A(${x1}, ${y1}) 与 B(${x2}, ${y2}) 之间的距离是（　）。`,
+        String(d), [String(Math.abs(x2 - x1)), String(Math.abs(y2 - y1)), String(d + 1)],
+        `两点在同一条水平或竖直线上，距离等于对应坐标差的绝对值，为 ${d}。`,
+        '先看两点是否同 x 或同 y。', tips.coord);
+    } else {
+      const [x1, y1, x2, y2] = [[0, 0, 3, 4], [1, 1, 4, 5]][i - 4];
+      const d = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+      add('c5', i, '两点间距离',
+        `点 A(${x1}, ${y1}) 与 B(${x2}, ${y2}) 之间的距离是（　）。`,
+        String(d), [String(Math.abs(x2 - x1) + Math.abs(y2 - y1)), String(d + 1), String(Math.abs(x2 - x1))],
+        `用勾股定理：水平差 ${Math.abs(x2 - x1)}，竖直差 ${Math.abs(y2 - y1)}，距离=${d}。`,
+        '斜着的距离用勾股定理。', tips.coord);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 3) {
+      const [x, y] = [[1, 2], [3, 4], [-2, 5]][i];
+      add('c5', i, '坐标平移',
+        `点 A(${x}, ${y}) 向右平移 3 个单位，再向上平移 2 个单位，得到的点是（　）。`,
+        `(${x + 3}, ${y + 2})`, [`(${x - 3}, ${y + 2})`, `(${x + 3}, ${y - 2})`, `(${x + 2}, ${y + 3})`],
+        '右移横坐标加，上移纵坐标加。',
+        '右加左减，上加下减。', tips.coord);
+    } else {
+      const [x, y] = [[2, 3], [4, 1], [-3, 2]][i - 3];
+      add('c5', i, '坐标轴对称',
+        `点 A(${x}, ${y}) 关于 x 轴对称的点是（　）。`,
+        `(${x}, -${y})`, [`(-${x}, ${y})`, `(-${x}, -${y})`, `(${y}, ${x})`],
+        '关于 x 轴对称，横坐标不变，纵坐标变相反数。',
+        'x 轴对称：y 变号。', tips.coord);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 3) {
+      const [x1, y1, x2, y2] = [[0, 0, 4, 0], [1, 1, 5, 1], [-2, 3, 2, 3]][i];
+      const mid = `(${(x1 + x2) / 2}, ${(y1 + y2) / 2})`;
+      add('c5', i, '线段中点',
+        `点 A(${x1}, ${y1})、B(${x2}, ${y2})，线段 AB 的中点是（　）。`,
+        mid, [`(${(x1 + x2) / 2}, ${y1})`, `(${x1}, ${(y1 + y2) / 2})`, `(${x2 - x1}, ${y2 - y1})`],
+        '中点横坐标是两端横坐标的平均数，纵坐标同理。',
+        '两个坐标分别取平均。', tips.coord);
+    } else {
+      const [w, h] = [[4, 3], [6, 2], [5, 4]][i - 3];
+      add('c5', i, '坐标与面积',
+        `长方形三个顶点是 (0,0)、( ${w},0)、(0,${h})，它的面积是（　）。`,
+        String(w * h), [String(w + h), String(2 * (w + h)), String(w * h / 2)],
+        '长是 ' + w + '，宽是 ' + h + '，面积=' + w + '×' + h + '=' + w * h + '。',
+        '先看两条边分别多长。', tips.coord);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 3) {
+      const [x, y] = [[2, 3], [4, 5], [6, 1]][i];
+      add('c5', i, '点到坐标轴的距离',
+        `点 P(${x}, ${y}) 到 y 轴的距离是（　）。`,
+        String(Math.abs(x)), [String(Math.abs(y)), String(x + y), String(Math.abs(x - y))],
+        '点到 y 轴的距离等于横坐标的绝对值。',
+        '到 y 轴看 x，到 x 轴看 y。', tips.coord);
+    } else {
+      const [x1, y1, x2, y2] = [[1, 2, 4, 2], [2, 3, 6, 3], [-1, 4, 3, 4]][i - 3];
+      const d = Math.abs(x2 - x1);
+      add('c5', i, '水平线段的长度',
+        `点 A(${x1}, ${y1})、B(${x2}, ${y2}) 在同一条水平线上，AB 的长是（　）。`,
+        String(d), [String(Math.abs(y2 - y1)), String(d + 1), String(x2 + x1)],
+        '纵坐标相同，长度等于横坐标差的绝对值。',
+        '同一条水平线只看 x 的差。', tips.coord);
+    }
+  }
+
+  /* ---------------- 第6章 一次函数 ---------------- */
+  for (let i = 0; i < 6; i++) {
+    const [k, b, x] = [[2, 1, 3], [3, -2, 2], [-1, 4, 5], [4, 1, -2], [-2, 3, 4], [5, -1, 2]][i];
+    const y = k * x + b;
+    add('c6', i, '一次函数求值',
+      `一次函数 y=${k}x${b >= 0 ? '+' : ''}${b}，当 x=${x} 时，y 的值是（　）。`,
+      String(y), [String(k + b), String(-y), String(k * x - b)],
+      `把 x=${x} 代入：y=${k}×(${x})${b >= 0 ? '+' : ''}${b}=${y}。`,
+      '先代 x，再算乘加。', tips.func);
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 4) {
+      const [k, b] = [[2, 1], [3, -1], [-2, 4], [4, 2]][i];
+      add('c6', i, '一次函数的解析式',
+        `一次函数 y=kx+b 的图象经过 (0, ${b}) 和 (1, ${k + b})，则 k 的值是（　）。`,
+        String(k), [String(b), String(k + b), String(-k)],
+        `x 增加 1，y 增加 k；从 (0,${b}) 到 (1,${k + b})，y 增加 ${k}，所以 k=${k}。`,
+        'k 是 x 每增加 1 时 y 的变化量。', tips.func);
+    } else {
+      const [k, b] = [[-2, 3], [3, -4]][i - 4];
+      add('c6', i, '一次函数的解析式',
+        `一次函数 y=kx+b 的图象经过 (0, ${b}) 和 (2, ${2 * k + b})，则 k 的值是（　）。`,
+        String(k), [String(b), String(k + b), String(-k)],
+        `x 从 0 到 2，y 从 ${b} 到 ${2 * k + b}，变化 ${2 * k}，所以 k=${k}。`,
+        '先求 y 的变化量，再除以 x 的变化量。', tips.func);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 4) {
+      const [k, b] = [[2, 3], [-1, 4], [3, -2], [-2, 1]][i];
+      add('c6', i, '一次函数与 y 轴交点',
+        `一次函数 y=${k}x${b >= 0 ? '+' : ''}${b} 的图象与 y 轴交点的坐标是（　）。`,
+        `(0, ${b})`, [`(${b}, 0)`, `(0, ${k})`, `(${k}, 0)`],
+        '令 x=0，得 y=' + b + '，所以交点是 (0,' + b + ')。',
+        '与 y 轴交点令 x=0。', tips.func);
+    } else {
+      const [k, b] = [[2, 4], [-3, 6]][i - 4];
+      add('c6', i, '一次函数与 x 轴交点',
+        `一次函数 y=${k}x${b >= 0 ? '+' : ''}${b} 的图象与 x 轴交点的横坐标是（　）。`,
+        String(-b / k), [String(b / k), String(-b), String(k)],
+        '令 y=0，得 ' + k + 'x' + (b >= 0 ? '+' : '') + b + '=0，x=' + (-b / k) + '。',
+        '与 x 轴交点令 y=0。', tips.func);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 3) {
+      const k = [2, -3, 4][i];
+      add('c6', i, '一次函数的增减性',
+        `一次函数 y=${k}x+1，y 随 x 的增大而（　）。`,
+        k > 0 ? '增大' : '减小', k > 0 ? ['减小', '不变', '无法确定'] : ['增大', '不变', '无法确定'],
+        `k=${k}${k > 0 ? '>0，所以 y 随 x 增大而增大' : '<0，所以 y 随 x 增大而减小'}。`,
+        '看 k 的正负。', tips.func);
+    } else {
+      const b = [3, -2, 5][i - 3];
+      add('c6', i, '一次函数图象与 y 轴',
+        `一次函数 y=2x${b >= 0 ? '+' : ''}${b} 的图象与 y 轴交于（　）。`,
+        `(0, ${b})`, [`(${b}, 0)`, `(0, 2)`, `(2, 0)`],
+        '令 x=0，y=' + b + '，交点是 (0,' + b + ')。',
+        'b 就是与 y 轴交点的纵坐标。', tips.func);
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    if (i < 3) {
+      const [k, b] = [[2, 3], [3, 5], [4, 2]][i];
+      add('c6', i, '一次函数图象经过的点',
+        `下列点中，在一次函数 y=${k}x+${b} 图象上的是（　）。`,
+        `(1, ${k + b})`, [`(1, ${k})`, `(0, ${k})`, `(${k + b}, 0)`],
+        `把 x=1 代入，y=${k}+${b}=${k + b}，所以 (1,${k + b}) 在图象上。`,
+        '把点的坐标代入解析式检验。', tips.func);
+    } else {
+      const [k, b] = [[-2, 5], [3, -1], [4, 2]][i - 3];
+      add('c6', i, '一次函数图象经过的点',
+        `下列点中，在一次函数 y=${k}x${b >= 0 ? '+' : ''}${b} 图象上的是（　）。`,
+        `(2, ${2 * k + b})`, [`(2, ${k + b})`, `(0, ${k})`, `(${2 * k + b}, 0)`],
+        `把 x=2 代入，y=${k}×2${b >= 0 ? '+' : ''}${b}=${2 * k + b}。`,
+        '代入后看左右是否相等。', tips.func);
+    }
+  }
+
+  out.forEach(q => QUESTIONS.push(q));
+})();
+
+</script>
+  <script>
+/* ============================================================
    数学探险岛 · 动画实验室
    全部使用原生 SVG / Canvas / DOM，无外部依赖
    ============================================================ */
@@ -13079,12 +13591,13 @@ function startQuiz(opts) {
 function startMotherQuiz() {
   const ch = chById(practiceChapter) || chById('c1');
   const all = chapterQuestions(ch.id);
-  let list = all.filter(q => q.mother);
+  let list = all.filter(q => q.mother && q.motherTier);
+  if (!list.length) list = all.filter(q => q.mother);
   if (!list.length) list = all;
-  list = list.slice().sort((a, b) => (a.level || 1) - (b.level || 1) || String(a.id).localeCompare(String(b.id)));
-  const qids = list.slice(0, 6).map(q => q.id);
+  list = list.slice().sort((a, b) => (a.tierRank || a.level || 1) - (b.tierRank || b.level || 1) || String(a.id).localeCompare(String(b.id)));
+  const qids = list.slice(0, 40).map(q => q.id);
   if (!qids.length) { toast('这一章还没有母题，先做章节闯关吧。', '🧩'); return; }
-  startQuiz({ qids, mode: 'mother', chapterId: ch.id, title: `第 ${ch.num} 章 · 母题阶梯` });
+  startQuiz({ qids, mode: 'mother', chapterId: ch.id, title: `第 ${ch.num} 章 · ${qids.length} 道母题` });
 }
 
 function renderPractice() {
@@ -13127,7 +13640,7 @@ function renderPractice() {
             <span class="m-ico">🩹</span><b>错题重练</b><span>把做错的题再打一遍，连续答对 2 次就掌握。</span><small>${wrongTodo ? `有 ${wrongTodo} 道待复习` : '暂无待复习'}</small>
           </button>
           <button class="mode-card" data-mode="mother" style="--accent:#2A6FDB;--soft:#EAF2FF">
-            <span class="m-ico">🧩</span><b>母题阶梯</b><span>同一类题从基础到综合，先懂根，再做变式。</span><small>当前章节 · 易 → 难</small>
+            <span class="m-ico">🧩</span><b>母题阶梯</b><span>同一类题从基础到综合，先懂根，再做变式。</span><small>当前章节 · 中 → 难</small>
           </button>
         </div>
 
@@ -13247,8 +13760,8 @@ function renderQuiz() {
         <div class="quiz-meta">
           <span class="chip coral">第 ${ch.num} 章 · ${ch.title}</span>
           <span class="chip">${q.point}</span>
-          <span class="chip ${q.level === 3 ? 'pink' : q.level === 2 ? 'gold' : 'teal'}">${q.level === 3 ? '挑战' : q.level === 2 ? '进阶' : '基础'}</span>
-          ${q.mother ? '<span class="chip blue">母题</span>' : ''}
+          <span class="chip ${q.level === 3 ? 'pink' : q.level === 2 ? 'gold' : 'teal'}">${q.motherTier || (q.level === 3 ? '挑战' : q.level === 2 ? '进阶' : '基础')}</span>
+          ${q.mother ? `<span class="chip blue">母题${q.motherTier ? ` · ${q.motherTier}` : ''}</span>` : ''}
           <span class="chip">${quiz.title}</span>
         </div>
         <div class="quiz-stem">${q.stem}</div>
